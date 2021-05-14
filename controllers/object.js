@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const formidable = require('formidable');
 const utilities = require('../libraries/utilities');
+const PushNotifications = require('../libraries/pushNotifications.js');
 
 // Variables populated from server.js with setup()
 var objects = {};
@@ -12,6 +13,8 @@ var objectsPath;
 var identityFolderName;
 var git;
 var sceneGraph;
+
+let pushNotifications;
 
 const uploadVideo = function(objectID, videoID, reqForForm, callback) {
     let object = utilities.getObject(objects, objectID);
@@ -293,6 +296,24 @@ const setFrameSharingEnabled = function (objectKey, shouldBeEnabled, callback) {
     console.warn('TODO: implement frame sharing... need to set property and implement all side-effects / consequences');
 };
 
+/**
+ * Register an object's associated device key for sending notifications through APNS
+ * @param {string} objectName
+ * @param {string} deviceKey - Key from app notification registration
+ */
+const registerObjectNotificationDeviceKey = function(objectName, deviceKey, callback) {
+    callback(pushNotifications.registerObject(objectName, deviceKey));
+};
+
+/**
+ * Send a notification payload to a specific object if supported
+ * @param {string} objectName
+ * @param {object} payload
+ */
+const notifyObject = function(objectName, payload, callback) {
+    callback(pushNotifications.notifyObject(objectName, payload));
+};
+
 const getObject = function (objectID) {
     return utilities.getObject(objects, objectID);
 };
@@ -305,6 +326,8 @@ const setup = function (objects_, globalVariables_, hardwareAPI_, objectsPath_, 
     identityFolderName = identityFolderName_;
     git = git_;
     sceneGraph = sceneGraph_;
+
+    pushNotifications = new PushNotifications(objects);
 };
 
 module.exports = {
@@ -320,5 +343,7 @@ module.exports = {
     generateXml: generateXml,
     setFrameSharingEnabled: setFrameSharingEnabled,
     getObject: getObject,
+    registerObjectNotificationDeviceKey,
+    notifyObject,
     setup: setup
 };

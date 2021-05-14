@@ -282,6 +282,42 @@ router.post('/:objectName/memory', function (req, res) {
     });
 });
 
+router.post('/:objectName/notifications/register', function (req, res) {
+    if (!utilities.isValidId(req.params.objectName)) {
+        res.status(400).send('Invalid object name. Must be alphanumeric.');
+        return;
+    }
+    if (!req.body.deviceKey) {
+        res.status(400).send('Missing device key');
+        return;
+    }
+
+    objectController.registerObjectNotificationDeviceKey(req.params.objectName, req.body.deviceKey, function(okay) {
+        if (!okay) {
+            res.status(500).send('Failed to register device key');
+            return;
+        }
+
+        res.sendStatus(200);
+    });
+});
+
+router.post('/:objectName/notifications/notify', function (req, res) {
+    if (!utilities.isValidId(req.params.objectName)) {
+        res.status(400).send('Invalid object name. Must be alphanumeric.');
+        return;
+    }
+
+    objectController.notifyObject(req.params.objectName, {}, function(okay) {
+        if (!okay) {
+            res.status(500).send('Failed to send notification');
+            return;
+        }
+
+        res.sendStatus(200);
+    });
+});
+
 // frames
 // Generates uuid
 router.post('/:objectName/frames/', function (req, res) {
